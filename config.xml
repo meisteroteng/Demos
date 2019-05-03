@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<widget xmlns   = "http://www.w3.org/ns/widgets"
+        xmlns:gap   = "http://phonegap.com/ns/1.0"
+        id          = "oteng.ramarea.com"
+        version     = "1.0.0" >
+
+        <preference name="phonegap-version" value="cli-5.2.0" />
+
+        <name>Fleet Cars Direct</name>
+        <description>
+            Fleet Cars Direct is a mobile app for an auto dealer company. 
+        </description>
+        <author email="olucky2508@gmail.com" href="http://otengramarea.or">
+            Oteng Ramarea
+        </author>
+        <content src="index.html" />
+		
+    <icon src="myicon.png"/>
+    <icon src="splash/drawable-hdpi/Icon.png" gap:platform="android" gap:qualifier="hdpi" />
+    <icon src="splash/drawable-hdpi/contextual-hdpi.png" gap:platform="android" gap:qualifier="hdpi" />
+	<icon src="splash/drawable-ldpi/icon.png" gap:platform="android" gap:qualifier="ldpi" />
+    <icon src="splash/drawable-mdpi/icon.png" gap:platform="android" gap:qualifier="mdpi" />
+    <icon src="splash/drawable-xhdpi/icon.png" gap:platform="android" gap:qualifier="xhdpi" />
+    
+
+    <gap:splash src="splash/splash.gif" />
+    <gap:splash src="splash/android/drawable-hdpi/splash.png" gap:platform="android" gap:qualifier="hdpi" />
+    <gap:splash src="splash/android/drawable-ldpi/splash.png" gap:platform="android" gap:qualifier="ldpi" />
+     <gap:splash src="splash/android/drawable-mdpi/splash.png" gap:platform="android" gap:qualifier="mdpi" />
+    <gap:splash src="splash/android/drawable-xhdpi/splash.png" gap:platform="android" gap:qualifier="xhdpi" />
+	
+    <gap:plugin name="org.apache.cordova.device" source="pgb" />
+<gap:plugin name="org.apache.cordova.camera" />
+<gap:plugin name="org.apache.cordova.file" />
+<gap:plugin name="org.apache.cordova.file-transfer" />
+<gap:plugin name="org.apache.cordova.media" />
+<gap:plugin name="org.apache.cordova.network-information" />
+       
+    
+    <preference name="SplashScreen" value="splash" />
+       <preference name="SplashScreenDelay" value="10000" /> 
+    
+    </widget>

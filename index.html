@@ -1,0 +1,1193 @@
+<!DOCTYPE html> 
+<html> 
+<head>
+    
+	<title>Fleet Cars Direct</title> 
+  <meta charset="utf-8" />
+    <meta name="format-detection" content="telephone=no" />
+  <meta name="msapplication-tap-highlight" content="no" />
+  <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />
+    <script type="text/javascript" src="cordova.js"></script>
+    <script type="text/javascript" src="index.js"></script>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="jquery.mobile-1.4.5.min.css" />
+	<script src="JQuery/jquery.js"></script>
+	<script src="jquery.mobile-1.4.5.min.js"></script>
+    <script src="xmlreader.js"></script>
+    <script src="client.min.js"></script>
+    <link rel="stylesheet" href="theme1.css" />
+     <link rel="stylesheet" href="jquery.mobile.icons.min.css" />
+    <style>
+        label, legend{
+            font-family:sans-serif;
+            color:black;
+            font-weight: normal;
+          
+        }
+        h2{
+            color:firebrick;
+            text-align:center;
+        }
+        tbody > tr{
+            border: thin solid #ccc;
+            
+          }
+        th{background-color:bisque }
+        img{border-radius:10px;}
+        
+    </style>
+    
+ <script type="text/javascript">
+     var db;
+     
+     $(document).ready(function () {
+         
+         DatabaseSetup();
+        loadCRecords(); 
+         SetUpFeedbackTable();
+       //  insertinitial();
+         
+        $(document).on("click","#save",function(){
+             getFormData();
+         });
+         
+         $(document).on("click","#savefeedback",function(){
+            
+             getFeedbackFormData();
+            alert("Thank you for your feedback")
+             window.location.href="#mainscreen"
+         });
+         
+        $(document).on("click","#ToRegister",function(){
+            alert("Photo Saved")
+             window.location.href="#register"
+         });
+         
+         $(document).on("click","#search",function(){
+             advancedSearchFn();
+            // window.location.href="#advanced"
+             
+         });
+         
+         $(document).ready(function() {
+        CostalCulator.init();
+       });
+         
+           $(document).on("click","#getfeedList",function(){
+             getFeedbackData();
+         });
+         
+         $(document).on("click","#feedbackRecord",function(){
+             getFeedbackByemail($(this).data("key"));
+         });
+   
+          $(document).on("click", "#acarRecord", function () {
+         console.log ('You just tapped on record number : ' + $(this).data('key'));
+         getCarByName($(this).data("key"));
+         });
+         
+      
+         
+   });
+         
+
+     function DatabaseSetup()
+     {
+        //set-up database name
+             db = openDatabase('FleetCarsDirect','1.0','FleetCarsDirect Data',2*1024*1024);
+             
+         //set-up table
+             db.transaction(function(txt){
+                
+                 txt.executeSql('CREATE TABLE IF NOT EXISTS cars(car_name Unique, car_color TEXT, car_enginesize TEXT, car_fueltype TEXT, car_fueltankcapacity TEXT, car_price TEXT, car_comments TEXT, car_picName TEXT,PRIMARY KEY(car_name) )');
+                
+              // txt.executeSql('DROP TABLE cars');
+                 txt.executeSql('INSERT INTO cars(car_name,car_color,car_enginesize,car_fueltype, car_fueltankcapacity,car_price,car_comments, car_picName)  VALUES (?, ?, ?, ?, ?, ?, ?, ?)', 
+                                ['Audi A3','black','4091cc - 4933cc','petrol','51.9','P336 197.71','1.8 TFSI Premium Sedan 6-Speed-Automanual','audia31.jpg']);
+                 
+              txt.executeSql('INSERT INTO cars(car_name,car_color,car_enginesize,car_fueltype, car_fueltankcapacity,car_price,car_comments, car_picName)  VALUES (?, ?, ?, ?, ?, ?, ?, ?)', 
+                              ['Ford Ranger','white','3212cc - 3901cc','petrol','80','P290 279.00','3.2 Ford Ranger 6-Speed-manual','whiteranger.jpg']);
+                 
+            txt.executeSql('INSERT INTO cars(car_name,car_color,car_enginesize,car_fueltype, car_fueltankcapacity,car_price,car_comments, car_picName)  VALUES (?, ?, ?, ?, ?, ?, ?, ?)', 
+             ['BMW 320d','white','2213cc','diesel','57','P170 810.82','BMW Sedan 6-Speed-manual','varient 320d.jpg']);
+            
+         txt.executeSql('INSERT INTO cars(car_name,car_color,car_enginesize,car_fueltype, car_fueltankcapacity,car_price,car_comments, car_picName)  VALUES (?, ?, ?, ?, ?, ?, ?, ?)', 
+                     ['D-4-D Toyota','white','4949cc - 5900cc','diesel','79','P234 787.67','D-4-D Toyota Hilux 6-Speed-manual','toyota.jpg']);
+                 
+             }); 
+     }
+     
+     
+   //  function insertinitial()
+     //{
+     //db = openDatabase('FleetCarsDirect','1.0','FleetCarsDirect Data',2*1024*1024);
+       //     db.transaction(function(txt){
+  
+     
+    
+       //});
+    // }
+   
+     
+         function InsertIntoDatabase(c_name, c_color, c_enginesize, c_fueltype, c_fueltankcapacity, c_price, c_comments, c_picName) //data to be passed into the function (parameters)
+         {
+            db = openDatabase('FleetCarsDirect','1.0','FleetCarsDirect Data',2*1024*1024);
+            db.transaction(function(txt){
+                 
+                 txt.executeSql('INSERT INTO cars(car_name,car_color,car_enginesize,car_fueltype, car_fueltankcapacity,car_price,car_comments, car_picName)  VALUES (?, ?, ?, ?, ?, ?, ?,?)',
+                              [c_name,c_color,c_enginesize,c_fueltype,c_fueltankcapacity,c_price,c_comments,c_picName]);
+               
+            });
+         }
+   
+     function getFormData()
+     {
+         var carname = $("#carname").val();
+         var colour =$("#colour").val();
+         var enginesize =$("#enginesize option:selected").text();
+        var fueltype = $("input[name='fueltype']:checked").val();
+         var tankcapacity =$("#tankcapacity").val();
+         var colour =$("#colour").val();
+         var price =$("#price").val();
+       var comments =$("#comments").val();
+         var pic= $("#myPic").val();
+            var lenOfPath = pic.length;
+            var lastindexOfBackSlash =pic.lastIndexOf('\\');
+            var picName = pic.substr(lastindexOfBackSlash+1,lenOfPath-1);
+   
+         var evryth=carname+ " | " +colour+ " | " +enginesize+ " | " +fueltype+ " | " +tankcapacity+ " | " +price+ " | " +comments+" | " +picName;
+         
+         console.log(evryth);
+         
+         InsertIntoDatabase(carname,colour,enginesize,fueltype,tankcapacity, price,comments, picName);
+         
+         ResetFormFields();
+        
+     }
+    
+  
+  function advancedSearchFn(){
+         
+         db.transaction(function(txs) {
+            var color =$("#color option:selected").text();
+        var enginesize =$("#enginesize option:selected").text();
+     var fuelType = $("input[name='fuelType']:checked").val();
+             
+         if (fuelType=='all'){
+             txs.executeSql("SELECT * FROM cars WHERE car_color ='"+ color +"'", [], function (txs, results) {
+                var len = results.rows.length, i;
+                    
+                     
+               $('#searchResultsTable td').parent().remove(); 
+                    
+                for (i = 0; i < len; i++) {
+                var CRecord = results.rows.item(i);
+                var row='';
+                               
+                row += "<tr><td>" + CRecord.car_name + 
+                    " </td><td>"+ CRecord.car_color + 
+                " </td><td>"+ CRecord.car_fueltype + 
+                    "</td><td> "+ CRecord.car_enginesize +
+                "</td><td>"+
+                '<a href="#detailcar" id="searchRecord" data-key="'+CRecord.car_name+ '">More</a></td></tr>';
+                  $('#tableBody').append(row);              
+                 }
+                 
+                      
+             });
+             
+             $( ":mobile-pagecontainer" ).pagecontainer( "change", "#SearchResultsPage", { role: "dialog" } );
+             
+         }else{
+            txs.executeSql("SELECT * FROM cars WHERE car_color ='"+ color +"' AND car_fuelType='"+ fuelType + "' AND car_fuelType='" + fuelType +"'", [], function (txs, results) {
+       
+                     
+                var len = results.rows.length, i;
+                     
+               $('#searchResultsTable td').parent().remove(); 
+                    
+                for (i = 0; i < len; i++) {
+                var CRecord = results.rows.item(i);
+                var row='';
+                               
+                row += "<tr><td>" + CRecord.car_name + 
+                "</td><td> "+ CRecord.car_color +     
+                "</td><td> "+ CRecord.car_fueltype + 
+                "</td><td> "+ CRecord.car_enginesize + 
+                "</td><td>"+
+                '<a href="#detailcar" id="searchRecord" data-key="'+CRecord.car_name+ '">More</a></td></tr>';
+                  $('#tableBody').append(row);              
+                 }
+                 
+                      
+             });
+             
+             $( ":mobile-pagecontainer" ).pagecontainer( "change", "#SearchResultsPage", { role: "dialog" } );
+                     
+                 }
+                     
+         });
+         
+     }
+     
+    
+     
+      function SetUpFeedbackTable()
+     {
+        //set-up database name
+             db = openDatabase('FleetCarsDirect','1.0','FleetCarsDirect Data',2*1024*1024);
+             
+         //set-up table
+             db.transaction(function(txt){
+                
+                 txt.executeSql('CREATE TABLE IF NOT EXISTS feedback(fb_sname TEXT, fb_fname TEXT, fb_email TEXT,fb_comments TEXT, fb_OS TEXT, fb_version TEXT, fb_hardware TEXT, PRIMARY KEY(fb_email) )');
+                 
+             }); 
+     }
+     
+         function InsertIntoFeedback(f_sname,f_fname,   f_email, f_comments, f_OS, f_version, f_hardware) //data to be passed into the function (parameters)
+         {
+            db = openDatabase('FleetCarsDirect','1.0','FleetCarsDirect Data',2*1024*1024);
+            db.transaction(function(txt){
+                 
+                 txt.executeSql('INSERT INTO feedback(fb_sname, fb_fname, fb_email,fb_comments, fb_OS, fb_version, fb_hardware)  VALUES (?, ?, ?, ?, ?, ?, ?)',
+                              [f_sname,f_fname,f_email, f_comments,f_OS, f_version, f_hardware]);
+               
+            });
+         }
+     
+
+     
+     
+     function getFeedbackData() {
+          db = openDatabase('FleetCarsDirect','1.0','FleetCarsDirect Data',2*1024*1024);
+         
+            db.transaction(function(txt) {
+                 txt.executeSql('SELECT * FROM feedback', [], function (txt, results) {
+                var len = results.rows.length, i;
+               $('#myTable td').parent().remove(); 
+                    
+                for (i = 0; i < len; i++) {
+                var feedbackRecord = results.rows.item(i);
+                var row='';
+                               
+                row += "<tr><td>" + feedbackRecord.fb_sname + 
+                " "+ feedbackRecord.fb_fname + 
+                "</td><td>"+ feedbackRecord.fb_email +
+                "</td><td>"+ 
+                '<a href="#feeddetailinfo" id="feedbackRecord" data-key="'+feedbackRecord.fb_email+ '">More</a></td></tr>';
+                  $('#tableBody').append(row);
+                    
+                 }
+                      
+             });
+         });
+     }
+     
+     function getFeedbackByemail(Useremail) {
+         
+         db.transaction(function (txt) {
+             txt.executeSql('SELECT * FROM feedback WHERE fb_email="' + Useremail + '"', [], function (txt, results) {
+                var len = results.rows.length, i;
+                 //loop around each personal record in the database
+                 for (i = 0; i < len; i++) {
+                     var feedbackRecord = results.rows.item(i);
+                      
+                     var singleRecord = '';
+                     singleRecord += '<h3>Names: ' + feedbackRecord.fb_sname + " ";
+                     singleRecord += feedbackRecord.fb_fname + '</h3>';
+                     singleRecord += '<p>Email: ' + feedbackRecord.fb_email + '</p>';
+                     singleRecord += '<p>Comment: ' + feedbackRecord.fb_comments + '</p>';
+                      singleRecord += '<p>Hardware: ' + feedbackRecord.fb_hardware + '</p>'; 
+                    singleRecord += '<p>Version: ' + feedbackRecord.fb_version + '</p>';
+                  singleRecord += '<p>OS: ' + feedbackRecord.fb_OS + '</p>';                
+                     singleRecord += ' ';
+                     //add the pizza to the div called #IndividualSummary (located in                        the detailinfo sceen)
+                     $('#feedSummary').html(singleRecord);
+                   
+                 } //end for loop
+             });
+         });
+     }
+
+     //second try (ideal)
+   
+    
+      function loadCRecords() {
+         db.transaction(function (txt) {
+             txt.executeSql('SELECT * FROM cars', [], function (txt, results) {
+                 var len = results.rows.length, i;
+                //loop around each car record in the database
+                 for (i = 0; i < len; i++) {  
+                     var CRecord = results.rows.item(i);
+                     //create car list item list item. 
+                     var individualCar= '';
+                     individualCar =  '<li><a href="#detailcar" id="acarRecord"                          data-key="' + CRecord.car_name + '">';
+                     individualCar += '<img height="90" width="80" src="images/'                           + CRecord.car_picName + '" />';
+                     individualCar += '<h3>' + CRecord.car_name + '</h3>';
+                     individualCar += '<h3>' + CRecord.car_comments + '</h3>';
+                     individualCar += '<p>' + CRecord.car_price + '</p>';
+                     individualCar += '</a></li>';
+                     //alert(individualCar);
+                     //add the car to the listem item and refresh the listview to ensure formatting is retained.
+                     $('#listofcarss ul').append(individualCar); 
+                     $('#listofcarss ul:visible').listview('refresh');
+                 } //end for loop
+             });
+         });
+     }
+     
+     
+    function getCarByName(carnam) {
+         db.transaction(function (txt) {
+             txt.executeSql('SELECT * FROM cars where car_name="' + carnam + '"', [], function (txt, results) {
+                var len = results.rows.length, i;
+                 //loop around each car record in the database
+                 for (i = 0; i < len; i++) {
+                     var CarRecord = results.rows.item(i);
+                     //create car list item list item. 
+                     var individualCar = '';
+                     individualCar += '<h3>' + CarRecord.car_name + '</h3>';
+                     individualCar += '<img height="300" width="300" src="images/' +                     CarRecord.car_picName + '" />';
+                     individualCar += '<p>' + CarRecord.car_comments + '</p>';
+                     individualCar += '<p>Car Price: '+ CarRecord.car_price+ ", Car Color: " + CarRecord.car_color+", Car Engine Size: " +CarRecord.car_enginesize+", Car Fuel Type: " +CarRecord.car_fueltype+ ", Car Fuel Tank Capacity: "+CarRecord.car_fueltankcapacity+ ", Comments: "+CarRecord.car_comments+'</p>';
+                     //add the car to the div called #CarSummary (located in                        the detailinfo sceen)
+                     $('#CarSummary').html(individualCar);
+                 } //end for loop
+             });
+         });
+     }
+     
+  
+      function ResetFormFields()
+     {
+         $("#carDetails").trigger("reset");
+         $( ":mobile-pagecontainer" ).pagecontainer( "change", "#Insertdialog", { role: "dialog" });
+     }
+         
+      
+    </script>
+    
+  <script>
+        
+        $.ajax({
+        url: 'xmlFiles/news.xml',
+        dataType: 'xml',
+        success: function(data){    
+        $(document).on("click", "#aNewsFeed", function () {
+                  getNewsFeedById($(this).data("key"));
+         });
+    function getNewsFeedById(id){
+        $(data).find("NewsFeeds NewsFeed[id='" + id + "']")             .each(function(){
+            var formatedArticle = '';
+            var image = $(this).find('Image').text();
+            var date = $(this).find('Date').text();
+            var title = $(this).find('Title').text();
+            var author = $(this).attr('author');
+            $(this).find('article paragraph')                                         .each(function(){
+                formatedArticle += '<p>' + $(this).text(); + '</p>';
+                });
+            
+            
+            var newsItem = '';
+            newsItem += '<h3>' + title + '</h3>';
+            newsItem += '<hr/> <h5> By: ' + author + '</h5>';
+            newsItem += '<h4> ' + date + '</h4>';
+            newsItem += '<img height="280" width="310"                         src="' + image + '" />';
+            newsItem += '<p>' + formatedArticle + '</p>';
+            newsItem += '<hr/>';
+            newsItem += ' ';
+            
+            $('#NewsSummary').html(newsItem);
+        }
+        );
+      }
+     }
+  });
+      
+      
+      $(document).on("pagecreate", "#index", function(e) {
+  var thisActivePage = this;
+  $("#myPanel").one("panelbeforeopen", function() {
+    var myscreen = $.mobile.getScreenHeight(),
+      header = $(".ui-header", thisActivePage).hasClass("ui-header-fixed") ? $(".ui-header", thisActivePage).outerHeight() - 1 : $(".ui-header", thisActivePage).outerHeight(),
+      footer = $(".ui-footer", thisActivePage).hasClass("ui-footer-fixed") ? $(".ui-footer", thisActivePage).outerHeight() - 1 : $(".ui-footer", thisActivePage).outerHeight(),
+      panelheight = myscreen - header - footer;
+    $('.ui-panel').css({
+      'top': header,
+      'min-height': panelheight
+    });
+  });
+});
+     
+    </script>
+    <script>     
+        
+        function FindMe() {
+  var output = document.getElementById("map");
+
+  if (!navigator.geolocation){
+    output.innerHTML = "<p>Geolocation is not supported by your browser</p>";
+    return;
+  }
+
+  function success(position) {
+    var latitude  = position.coords.latitude;
+    var longitude = position.coords.longitude;
+
+    output.innerHTML = '<p>Latitude is ' + latitude + '° <br>Longitude is ' + longitude + '°</p>';
+
+    var img = new Image();
+    img.src = "https://maps.googleapis.com/maps/api/staticmap?center=" + latitude + "," + longitude + "&zoom=13&size=350x350&sensor=false";
+
+    output.appendChild(img);
+  };
+
+  function error() {
+    output.innerHTML = "Unable to view your location";
+  };
+
+  output.innerHTML = "<p>Location loading.......</p>";
+
+  navigator.geolocation.getCurrentPosition(success, error);
+}
+      
+	</script> 
+
+
+
+
+ </script>
+ 
+    
+    <script>
+    var CostalCulator = {
+   
+    inputArray: new Array('miles', 'mpg', 'cost_per_litre'),
+
+    resultArray: new Array('used_gallons', 'used_litres', 'total_cost'),
+
+    init: function() {
+
+      var Pfi;
+      for (var i in this.inputArray) {
+        Pfi = $('#' + this.inputArray[i] + '_fi');
+       
+        Pfi.bind('keyup change', this.doCalc);
+      }
+     
+      Pfi.trigger('change');
+    },
+
+    doCalc: function(eventObj) {
+    
+      var inputVariables = {};
+   
+      var isValid = true;
+      for (var i in CostalCulator.inputArray) {
+        var fiId = CostalCulator.inputArray[i]; 
+        var val = $('#' + fiId + '_fi').val(); 
+      
+        if (isNaN(parseFloat(val)) || val < 0 || val > 10000000) {
+          isValid = false;
+ break;
+        }
+        
+        else
+          inputVariables[fiId] = val;
+      }
+
+     
+      var resultVars = {};
+      
+      if (isValid) {
+        var milesPerLitre = inputVariables['mpg'] / 30.45708299; 
+        resultVars['used_gallons'] = inputVariables['miles'] / inputVariables['mpg'];
+        resultVars['used_litres'] = inputVariables['miles'] / milesPerLitre;
+        resultVars['total_cost'] = resultVars['used_litres'] * inputVariables['cost_per_litre'];
+      }
+     
+      else {
+        for (var i in CostalCulator.resultArray)
+          resultVars[CostalCulator.resultArray[i]] = 0;
+      }
+
+      for (var i in CostalCulator.resultArray) {
+        var laId = CostalCulator.resultArray[i]; //get label/span ID
+        $('#' + laId + '_la').text(resultVars[laId].toFixed(2));
+      }
+    }
+  };
+
+
+    
+    </script>
+    <style>
+    .loader {
+	position: fixed;
+	left: 0px;
+	top: 0px;
+	width: 100%;
+	height: 100%;
+	z-index: 9999;
+	background: url('splash/splash.gif') 40% 60% no-repeat rgb(249,249,249);
+}
+    </style>
+    <script type="text/javascript">
+$(window).load(function() {
+	$(".loader").fadeOut("slow");
+})
+</script>
+    
+      <script language="javascript" type="text/javascript"> 
+function QuitApp() { 
+window.close();
+    alert("Application Closing")
+} 
+</script>
+    
+    </head>
+    <body>
+        <div class="loader"></div>
+        <script>
+        function getFeedbackFormData()
+     {
+         var client = new ClientJS(); // Create A New Client Object
+         var surname = $("#sname").val();
+         var firstname = $("#fname").val()
+         var email = $("#email").val();
+         var comments =$("#comments").val();
+         var swVersion = client.getCurrentResolution(); // Get ClientJS Software Version
+         var f_OS = client.getOS();//check for mobile
+         var f_version = client.getOSVersion();//get operating system version
+         var f_hardware = client.getDevice();//get hardware information
+         
+         var evrythng=surname+" | "+ firstname+" | "+ email+" | "+ comments+" | "+f_OS+" | "+f_version+" | "+f_hardware;
+         
+         console.log(evrythng);
+         
+         InsertIntoFeedback(surname,firstname,email,comments,f_OS,f_version,f_hardware);
+         
+       
+     }
+        </script>
+    
+    <div data-role="page" id="mainscreen">
+<div data-role="panel" id="myPanel" data-display="overlay">
+     
+      <p><ul data-role="listview">
+	<li><a href="#about" data-transition="crossfade" onclick="alert('At your service')">About</a></li>
+	<li><a href="#detailcar"  data-transition="slide" >Cost Calculator</a></li>
+     <li><input type="button" value="Quit Application" onclick="QuitApp();"></li>
+</ul></p>
+    </div>
+	<div data-role="header">
+		<h1>Fleet Cars Direct </h1>
+		
+         <a href="#myPanel" class="ui-btn ui-btn-left ui-icon-bars ui-btn-icon-left ui-corner-all ui-shadow">Other Links</a>
+        <div data-role="navbar">
+        <ul>
+            <li><a href="#news">NEWS</a></li>
+            <li><a href="#register">CAR REGISTRATION</a></li>
+            <li><a href="#camera">CAMERA</a></li>
+            </ul>
+        </div>
+	</div><!-- /header -->
+
+	<div data-role="content" >	
+		 <h2>Fleet Cars Direct</h2>
+		 <hr>
+		 <img src="images/car2.jpg" width=100% />
+		
+        <div data-role="controlgroup" data-type="vertical">
+          
+            <a href="#View" id="getCarList" class="ui-btn">View Cars (Products)</a>
+         
+             <a href="#feedback" class="ui-btn">Feedback/Contact Us</a>
+            <a href="#Feedbacklist" id="getfeedList" class="ui-btn">View Feedback</a>
+        </div>
+
+    </div><!-- /content -->
+
+	<div data-role="footer" data-position="fixed">
+           <h4> &copy; Oteng Ramarea, Demo  </h4>
+        </div>
+</div><!-- /page -->
+  
+  <!-- Start of About page -->
+<div data-role="page" id="about" >
+
+	<div data-role="header" >
+         <a href="#" class="ui-btn" onclick="alert('You are going back')" ui-icon-back data-rel="back" >Go Back</a>
+		<h1>About Us</h1>
+         <div data-role="navbar">
+        <ul>
+            <li><a href="#mainscreen" class="ui-btn ui-icon-home ui-btn-icon-left">HOME</a></li>
+            <li><a href="#register">CAR REGISTRATION</a></li>
+            <li><a href="#camera">CAMERA</a></li>
+            </ul>
+        </div>
+	</div><!-- /header -->
+
+	<div data-role="content">	
+        <div data-role="collapsible">
+            <h3>MORE DETAILS ABOUT US</h3>
+		<p>We at FleetCarsDirect welcome you and give you our best regards.</p>	
+		<p>At your service</p>
+        <p>FleetCarsDirect is a UK based car dealer, with offices in Sunderland and London. We let you pick your choice, no pushy car salesmen just you and your pick. Make a smart move with us...</p>
+        <div data-role="collapsible">
+           <h4> LONDON OFFICES</h4>
+            <p>50 George Street London W1U 7GA, United Kingdom </p>
+            <p>Our Direct line is +44 20 76265304, call us today</p>
+            <p><a href="#anylink" ui-icon-mail>Or email us at fleetcarsdirectlondon@gmail.com</a></p>
+            </div>
+            <div data-role="collapsible">
+           <h4> SUNDERLAND OFFICES</h4>
+            <p>InstaVenues 2 Church Street,  SUNDERLAND OFFICES, SL1 7HZ, United Kingdom</p>
+                <p>Our Direct line is 02076265304, call us today</p>
+                <p>  <a href="#anylink" ui-icon-mail>Or email us at fleetcarsdirectsunderland@gmail.com</a></p>
+            </div>
+             
+        <div data-role="collapsible" data-collapsed="true">
+             <h5>Author details</h5>
+                   <p>Name: Oteng Ramarea</p>
+                   <p>Contact: +267 76265304</p>
+                   <p><a href="#anylink" ui-icon-mail>Email: olucky2508@gmail.com</a></p>
+        </div>
+            
+        <section id="wrapper">
+<!--Click the allow button to let the browser find your location.-->
+            
+<p><button onclick="FindMe()" data-icon="location">Click to show your location area on the map</button></p>
+<div id="map"></div>
+        
+
+</section>
+            </div>
+	    <p><a href="#mainscreen" >Back to main menu</a></p>	
+	</div><!-- /content -->
+
+	<div data-role="footer" data-position="fixed">
+		<h4> &copy; Oteng Ramarea, Demo  </h4>
+	</div><!-- /footer -->
+</div><!-- /page -->
+        
+  <div data-role="page" id="Insertdialog">
+
+	<div data-role="header">
+	<a href="#" class="ui-btn ui-corner-all ui-shadow ui-icon-info ui-btn-icon-notext">Home</a>
+		<h1>Data Entry Confirmation </h1>
+	</div><!-- /header -->
+
+	<div data-role="content" >	
+		  <h4>Record Successfully Saved, Do You Want To Add Another One ?</h4>
+		  <hr/>
+		 <div style="text-align:center;" >
+          <a href="#register" class=" ui-btn ui-mini ui-btn-inline ui-corner-all" >Yes</a>
+          <a href="#mainscreen" class="ui-btn ui-mini ui-btn-inline ui-corner-all">No</a>
+          
+         
+        </div><!-- /content -->
+      </div>
+
+	<div data-role="footer" data-position="fixed">
+           <h4> &copy; Oteng Ramarea, Demo  </h4>
+        </div>
+</div><!-- /page -->
+ 
+ 
+<div data-role="page" id="advancedSearch">
+
+	<div data-role="header" data-add-back-btn="true" data-back-btn-text="Back">
+		<h1>Advanced Search</h1>
+	</div><!-- /header -->
+
+	<div data-role="content">	
+		<div data-role="content">
+           <form id="searchDetails">
+              <hr/>
+              
+               
+               <fieldset data-role="controlgroup" data-mini="true">
+                  <legend>Choose Fuel Type:</legend>
+                     
+                      <input type="radio" name="fuelType" id="all" value="all" >
+                      <label for="all">All</label>
+                      
+                      <input type="radio" name="fuelType" id="petrol" value="petrol" >
+                      <label for="petrol">petrol</label>
+                      
+                      <input type="radio" name="fuelType" id="diesel" value="diesel" >
+                      <label for="diesel">diesel</label>
+                   
+               </fieldset>
+               <br>
+               
+               <fieldset data-role="controlgroup" data-mini="true">
+                   <legend>Choose Car Color:</legend>
+               <select name="color" id="color" data-inline="true" data-mini="true">
+                   <option value="white">white</option>
+                   <option value="black" >black</option>
+                   <option value="grey" >grey</option>
+                   <option value="red" >red</option>
+                </select>
+               </fieldset>
+               <br/>
+               
+               <fieldset data-role="controlgroup" data-mini="true">
+                   <legend>Choose Car Engine Size:</legend>
+               <select name="enginesize" id="enginesize" data-inline="true" data-mini="true">
+                   <option value="2213cc">2213cc</option>
+                   <option value="3212cc - 3901cc" >3212cc - 3901cc</option>
+                   <option value="4091cc - 4933cc" >4091cc - 4933cc</option>
+                   <option value="4949cc - 5900cc" >4949cc - 5900cc</option>
+                </select>
+               </fieldset>
+               <hr>
+               
+               <input type="button" id="search" value="Search" data-inline="true">
+               
+           </form>
+        </div>		
+			
+	</div><!-- /content -->
+
+	<div data-role="footer" data-position="fixed">
+		<h4>Oteng Ramarea, Demo </h4>
+	</div><!-- /footer -->
+</div><!-- /page -->
+<!--advanced results-->
+
+ <div data-role="page" id="SearchResultsPage">
+
+	<div data-role="header" data-add-back-btn="true" data-back-btn-text="Back">
+			<h1> Search Results</h1>
+         <div data-role="navbar">
+        <ul>
+            <li><a href="#mainscreen" class="ui-btn ui-icon-home ui-btn-icon-left">HOME</a></li>
+            <li><a href="#news" data-transition="crossfade">NEWS</a></li>
+            <li><a href="#feedback">GIVE FEEDBACK</a></li>
+            </ul>
+        </div>
+	</div><!-- /header -->
+
+	<div data-role="content" >	
+		  <h4>Search Results:</h4>
+		  <hr/>
+		  
+		<div style="text-align:center;" id="searchResults">
+              <table id="searchResultsTable" data-role="table" class="ui-responsive">
+                    <thead>
+                    <tr>
+                        <th>Car Name</th>
+                        <th>Color</th>
+                        <th>FuelType</th>
+                        <th>Enginesize</th>
+                        <th>More Details</th>
+                    </tr>
+                    </thead>
+                    <tbody id="tableBody"></tbody>
+            </table>
+      </div>
+
+	<div data-role="footer" data-position="fixed">
+           <h4>  &copy; Oteng Ramarea, Demo  </h4>
+    </div>
+     </div>
+</div><!-- /page -->
+
+
+ 
+ <div data-role="page" id="View">
+
+	<div data-role="header" data-add-back-btn="true" data-back-btn-text="Back" ui-icon-back>
+   
+       
+			<h1> Registered Cars</h1>
+            <div data-role="navbar">
+        <ul>
+            <li><a href="#mainscreen" class="ui-btn ui-icon-home ui-btn-icon-left">HOME</a></li>
+            <li><a href="#news" data-transition="crossfade">NEWS</a></li>
+            <li><a href="#feedback">GIVE FEEDBACK</a></li>
+            </ul>
+        </div>
+        <br>
+       <div data-role="navbar">
+      
+       <a href="#advancedSearch" class="ui-btn ui-icon-search ui-btn-icon-left">Advanced Search</a>
+        </div>
+	</div><!-- /header -->
+
+	<div data-role="content" >
+     
+		  <h4>List of Cars in the System: </h4>
+		
+	<div style="text-align:center;" id="getCarList">
+            
+            <div data-role="content" id="listofcarss">
+		<ul data-role="listview"  data-filter="true" data-inset="true" >
+                </ul>
+          
+      </div>
+        </div>
+	<div data-role="footer" data-position="fixed">
+           <h4> &copy; Oteng Ramarea, Demo  </h4>
+    </div>
+     </div>
+</div><!-- /page -->
+  
+<div data-role="page" id="news" data-add-back-btn="true" data-back-btn-text="Back">
+    
+    <div data-role="header" data-add-back-btn="true" data-back-btn-text="Back" ui-icon-back>
+		<h1>News Feeds</h1>
+        <div data-role="navbar">
+        <ul>
+            <li><a href="#mainscreen" class="ui-btn ui-icon-home ui-btn-icon-left">HOME</a></li>
+            <li><a href="#about">ABOUT US</a></li>
+            <li><a href="#feedback">GIVE FEEDBACK</a></li>
+            </ul>
+        </div>
+	</div><!-- /header -->
+
+	<div data-role="content">	
+		<img src="images/news.jpg" alt="Car News picture" width="100%">
+		 
+        <div data-role="content" id="listoffeeds">
+            <div id=status></div>
+            <ul data-role="listview"  data-filter="true" data-inset="true" >
+                <!-- news items will be inserted here from the xml using jquery -->
+            </ul>
+        </div>
+
+    </div><!-- /content -->
+    <div data-role="footer" data-position="fixed" >
+		<h4> &copy; Oteng Ramarea, Demo  </h4>
+	</div><!-- /footer -->
+</div>
+
+    <!-- Start of News Details Screen page -->
+<!-- This page will display more details about each pizza in the database. -->
+<div data-role="page" id="newsdetailinfo" data-add-back-btn="true" data-back-btn-text="Back">
+
+	<div data-role="header" data-add-back-btn="true" data-back-btn-text="Back" ui-icon-back>
+		<h1>News Details</h1>
+        <div data-role="navbar">
+        <ul>
+            <li><a href="#mainscreen" class="ui-btn ui-icon-home ui-btn-icon-left">HOME</a></li>
+            <li><a href="#news">NEWS</a></li>
+            <li><a href="#feedback">GIVE FEEDBACK</a></li>
+            </ul>
+        </div>
+	</div><!-- /header -->
+
+	<div data-role="content">	
+		 
+		<div id="NewsSummary"></div>	
+
+		
+	</div><!-- /content -->
+
+	<div data-role="footer" data-position="fixed" >
+		<h4> &copy; Oteng Ramarea, Demo  </h4>
+	</div><!-- /footer -->
+</div><!-- /page -->
+      
+    
+	
+
+
+   <div data-role="page" id="camera" >
+
+	<div data-role="header" >
+		 <a href="#" class="ui-btn" onclick="alert('You are going back')" ui-icon-back data-rel="back" >Go Back</a>
+        <h1>Camera</h1>
+        <input type="button" id="ToRegister" value="Continue To Register a new Car" data-inline="true">
+	</div><!-- /header -->
+
+<div data-role="content">	
+    
+    <div class="app">
+            <h4>Capture Photos here</h4>
+            <input type="button" onclick="capturephoto()" value="Capture Photo Here"/>
+            
+            <input type="button" onclick="capturephotoURL()" value="Capture Photo & Edit Here"/>
+            <input type="button" onclick="choosePhoto()" value="Album"/>
+            
+            <img src="" id="myImage" height="200px" width="200px"/>
+
+            <img src="" id="myImageUrl" height="200px" width="200px">
+           
+            <img src="" id="lib" height="200px" width="200px">
+            <p id="text"></p>
+            <p id="text2"></p>
+
+</div>
+    </div>
+
+	<div data-role="footer" data-position="fixed" >
+		<h4> &copy; Oteng Ramarea, Demo  </h4>
+	</div><!-- /footer -->
+</div><!-- /page -->
+    
+<!--start of car registration -->
+         
+        
+  <div data-role="page" id="register">
+
+	    <div data-role="header" data-add-back-btn="true" data-back-btn-text="Back">
+		<h1>Car Details</h1>
+            <div data-role="navbar">
+        <ul>
+            <li><a href="#mainscreen" class="ui-btn ui-icon-home ui-btn-icon-left">HOME</a></li>
+            <li><a href="#news">NEWS</a></li>
+            <li><a href="#feedback">GIVE FEEDBACK</a></li>
+            </ul>
+        </div>
+	    </div><!-- /header -->
+
+	   <div data-role="content">
+           <form id="carDetails">
+              <hr/>
+              
+               <label for="carname">Car Name:</label>
+               <input type="text" id="carname" name="carname">
+               
+             <label for="colour">Car colour:</label>
+               <input type="text" id="colour" name="colour">
+               
+               <fieldset data-role="controlgroup" data-mini="true">
+                   <legend>Select the car engine size:</legend>
+               <select name="enginesize" id="enginesize" data-inline="true" data-mini="true">
+                   <option value="2.2">2213cc</option>
+                   <option value="2.5range" >2475cc - 2967cc</option>
+                   <option value="3.2range" >3212cc - 3901cc</option>
+                   <option value="4.0range" >4091cc - 4933cc</option>
+                   <option value="5.0range" >4949cc - 5900cc</option>
+                   <option value="6.0range" >6032cc - Above</option>
+               </select>
+               </fieldset>
+               <br>
+               <fieldset data-role="controlgroup" data-mini="true">
+                  <legend>Choose Car Fuel Type:</legend>
+                     
+                      <input type="radio" name="fueltype" id="petrol" value="petrol" >
+                      <label for="petrol">Petrol</label>
+                      <input type="radio" name="fueltype" id="diesel" value="diesel" >
+                      <label for="diesel">Diesel</label>
+                   
+               </fieldset>
+               
+               <label for="tankcapacity">Tank Capacity:</label>
+               <input type="text" id="tankcapacity" name="tankcapacity">
+                <br>
+                <br>
+               <label for="price">Car Price:</label>
+               <input type="text" id="price" name="price">
+               <br>
+               <label for="comments">Descriptive Comments:</label>
+               <textarea cols="40" rows="8" id="comments" name="comments"></textarea>
+               <br>
+               <label for="myPic">Upload a Car Picture:</label>
+               <input type="file" id="myPic" name="myPic">
+              
+               
+               <hr/>
+               <input type="button" id="save" value="Save Record" data-inline="true">
+               
+           </form>
+        </div>
+        <div data-role="footer" data-position="fixed">
+           <h4> &copy; Oteng Ramarea, Demo  </h4>
+        </div>
+    </div>
+    
+        
+<!--feedback form -->
+  <div data-role="page" id="feedback">
+
+	<div data-role="header" data-add-back-btn="true" data-back-btn-text="Back">
+			<h1> Feedback/ Contact</h1>
+        <div data-role="navbar">
+        <ul>
+            <li><a href="#mainscreen" class="ui-btn ui-icon-home ui-btn-icon-left">HOME</a></li>
+            <li><a href="#news">NEWS</a></li>
+            <li><a href="#about">ABOUT US</a></li>
+            </ul>
+        </div>
+	</div><!-- /header -->
+
+	<div data-role="content" >	
+		  <h4>Feedback form: <p>Enter your feedback below, give us a comment</p> </h4>
+		  
+		  
+            
+            <div data-role="content" id="feedbackinfo">
+		<form id="feedbackDetails">
+              <hr/>
+              
+        
+               <label for="fname">FirstName:</label>
+               <input type="text" id="fname" name="fname">
+            
+               
+               <label for="sname">Surname:</label>
+               <input type="text" id="sname" name="sname">
+             
+               <label for="email">Email:</label>
+               <input type="email" id="email" name="email">
+               <br>
+               
+               <br>
+               <label for="comments">Your Comments:</label>
+               <textarea cols="50" rows="8" id="comments" name="comments"></textarea>
+               <br>
+               
+               <hr/>
+               <input type="button" id="savefeedback" value="Save Record" data-inline="true">
+           </form>
+      </div>
+
+	<div data-role="footer" data-position="fixed">
+           <h4> &copy; Oteng Ramarea, Demo  </h4>
+    </div>
+     <!--</div> -->
+</div>
+        
+        
+  
+        </div><!-- /page -->
+        
+        <!-- This page will display more details about each car in the database. -->
+<div data-role="page" id="detailcar" data-back-btn-text="Back" ui-icon-back>
+
+	<div data-role="header" data-add-back-btn="true" data-back-btn-text="Back">
+		<h1>Car Details</h1>
+	</div><!-- /header -->
+
+	<div data-role="content">	
+		 
+		<div id="CarSummary"></div>	
+<br>
+         <div data-role="collapsible">
+           <h4>Calculate Fuel Economy</h4>
+            
+        <div>
+
+<h3>Fuel Economy Calculator</h3>
+<p>Add new values in the text fields available to indicate the travel distance and the average driving speed.</p>
+   <table>        <p><tr>
+     <td>  I desire to travel a distance of</td>
+      <td> <input type="text" value="100" id="miles_fi" size="4"> Kilometers</td>
+       </tr></p>
+<p>
+   <tr><td> At an average driving speed of: </td>
+    <td><input type="text" value="50" id="mpg_fi" size="4"> kilometers to the liters</td></tr>
+</p>
+<p>
+    <tr><td>The current price for a litre is P</td><td><input type="text" value="8.41" id="cost_per_litre_fi" size="4"></td></tr></p>
+       
+       </table> 
+<h3>Fuel Economy Results:</h3>
+<p>You will use approximately. <span id="used_gallons_la">X</span> gallons, or <span id="used_litres_la">Z</span> litres</p>	
+<p>
+And it will cost you: <b>P<span id="total_cost_la">Y</span></b></p>
+</div>
+             </div>
+	</div><!-- /content -->
+
+	<div data-role="footer" data-position="fixed" >
+		<h4> &copy; Oteng Ramarea, Demo  </h4>
+	</div><!-- /footer -->
+</div><!-- /page --> 
+      
+        
+   <div data-role="page" id="Feedbacklist">
+
+	<div data-role="header" data-add-back-btn="true" data-back-btn-text="Back">
+			<h1> Feedback Listing</h1>
+        <div data-role="navbar">
+        <ul>
+            <li><a href="#mainscreen" class="ui-btn ui-icon-home ui-btn-icon-left">HOME</a></li>
+            <li><a href="#news">NEWS</a></li>
+            <li><a href="#feedback">GIVE FEEDBACK</a></li>
+            </ul>
+        </div>
+	</div><!-- /header -->
+
+	<div data-role="content" >	
+		  <h4>Customer comments:</h4>
+		  <hr/>
+		  
+		<div style="text-align:center;" id="feedbackdata">
+              <table id="myTable" data-role="table" class="ui-responsive">
+                    <thead>
+                    <tr>
+                        <th>Customer Name</th>
+                        <th>Email</th>
+                        <th>More Details</th>
+                    </tr>
+                    </thead>
+                    <tbody id="tableBody"></tbody>
+            </table>
+      </div>
+
+	<div data-role="footer" data-position="fixed">
+           <h4> &copy; Oteng Ramarea, Demo   </h4>
+    </div>
+     </div>
+</div><!-- /page -->
+  
+        
+        <div data-role="page" id="feeddetailinfo" data-add-back-btn="true" data-back-btn-text="Back" ui-icon-back>
+
+	<div data-role="header" data-add-back-btn="true" data-back-btn-text="Back">
+		<h1>Personal Details</h1>
+         <div data-role="navbar">
+        <ul>
+            <li><a href="#mainscreen" class="ui-btn ui-icon-home ui-btn-icon-left">HOME</a></li>
+            <li><a href="#news">NEWS</a></li>
+            <li><a href="#feedback">GIVE FEEDBACK</a></li>
+            </ul>
+        </div>
+	</div><!-- /header -->
+
+	<div data-role="content">	
+		 
+		<div style="text-align:center" id="feedSummary"></div>	
+
+		
+	</div><!-- /content -->
+
+	<div data-role="footer" data-position="fixed" >
+		<h4> &copy; Oteng Ramarea, Demo  </h4>
+	</div><!-- /footer -->
+</div><!-- /page -->
+
+        
+         <div data-role="page" id="advanced" >
+
+	<div data-role="header" data-add-back-btn="true" data-back-btn-text="Back">
+		<h1>ADVANCED SEARCH</h1>
+         <div data-role="navbar">
+        <ul>
+            <li><a href="#mainscreen" class="ui-btn ui-icon-home ui-btn-icon-left">HOME</a></li>
+            <li><a href="#news">NEWS</a></li>
+            <li><a href="#feedback">GIVE FEEDBACK</a></li>
+            </ul>
+        </div>
+	</div><!-- /header -->
+
+	<div data-role="content">	
+		 
+		<div style="text-align:center" id="feedSummary"></div>	
+
+		
+	</div><!-- /content -->
+
+	<div data-role="footer" data-position="fixed" >
+		<h4> &copy; Oteng Ramarea, Demo  </h4>
+	</div><!-- /footer -->
+</div><!-- /page -->
+        
+    </body>
+</html>
